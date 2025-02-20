@@ -6,7 +6,7 @@ namespace BalanceX.Handlers
 {
     public class RequestHandler
     {
-        public static async Task HandleRequest(TcpClient client)
+        public static async Task HandleRequest(TcpClient client, string message)
         {
             using var stream = client.GetStream();
             var buffer = new byte[1024];
@@ -15,7 +15,7 @@ namespace BalanceX.Handlers
 
             Console.WriteLine($"Received request from {client.Client.RemoteEndPoint}:\n{request}");
 
-            string response = "HTTP/1.1 200 OK\r\nContent-Length: 25\r\n\r\nHello from Load Balancer!";
+            string response = $"HTTP/1.1 200 OK\r\nContent-Length: 25\r\n\r\nHello from {message}!";
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 

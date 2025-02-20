@@ -1,18 +1,9 @@
-﻿using BalanceX.Handlers;
-using System.Net;
-using System.Net.Sockets;
+﻿using BalanceX.Servers;
 
-int port = 8080;
+var listener = new Listener(8080);
+var listenerTask = listener.StartListening();
 
-var listener = new TcpListener(IPAddress.Any, port);
-listener.Start();
+var mockServer = new BackendServer(8085);
+var mockServerTask = mockServer.Run();
 
-Console.WriteLine($"BalanceX started on port {port}");
-
-while (true)
-{
-    var client = await listener.AcceptTcpClientAsync();
-    // Handle requests async    
-    _ = Task.Run(() => RequestHandler.HandleRequest(client));
-}
-
+await Task.WhenAll(listenerTask, mockServerTask);
