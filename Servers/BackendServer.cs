@@ -1,12 +1,12 @@
-﻿using BalanceX.Handlers;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace BalanceX.Servers
 {
     class BackendServer
     {
-        private int _port;
+        private readonly int _port;
 
         public BackendServer(int port)
         {
@@ -22,8 +22,28 @@ namespace BalanceX.Servers
             while (true)
             {
                 var client = await listener.AcceptTcpClientAsync();
-                _ = Task.Run(() => RequestHandler.HandleRequest(client, "Backend Server"));
+                _ = Task.Run(() => HandleRequest(client));
             }
+        }
+
+        private static async Task HandleRequest(TcpClient client)
+        {
+            using var stream = client.GetStream();
+            var buffer = new byte[1024];
+            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+            string request = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            Console.WriteLine($"Received request from {client.Client.RemoteEndPoint}:\n{request}");
+
+            string response = $"HTTP/1.1 200 OK\r\nContent-Length: 25\r\n\r\nHello from Backend Server!";
+
+            byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+
+            Console.WriteLine($"Sending response:\n{response}");
+
+            await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
+
+            client.Close();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace BalanceX.Servers
             while (true)
             {
                 var client = await listener.AcceptTcpClientAsync();
-                _ = Task.Run(() => RequestHandler.HandleRequest(client, "Load Balancer"));
+                _ = Task.Run(() => RequestHandler.HandleRequest(client));
             }
         }
     }
