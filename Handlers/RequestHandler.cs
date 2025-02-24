@@ -15,9 +15,10 @@ namespace BalanceX.Handlers
 
             Console.WriteLine("Hello from Listener. \n");
             Console.WriteLine($"Received request from {client.Client.RemoteEndPoint}:\n{request}");
+
             Console.WriteLine("Forwarding to backend server... \n");
 
-            var backendResponse = await ForwardRequestToBackend();
+            var backendResponse = await ForwardRequestToBackend(8081);
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(backendResponse);
             await clientStream.WriteAsync(responseBytes, 0, responseBytes.Length);
@@ -25,12 +26,9 @@ namespace BalanceX.Handlers
             client.Close();
         }
 
-        public static async Task<string> ForwardRequestToBackend()
+        public static async Task<string> ForwardRequestToBackend(int backendPort)
         {
-            string backendAddress = "127.0.0.1";
-            int backendPort = 8085;
-
-            using var backendClient = new TcpClient(backendAddress, backendPort);
+            using var backendClient = new TcpClient("127.0.0.1", backendPort);
             using var stream = backendClient.GetStream();
 
             string request = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
@@ -39,7 +37,11 @@ namespace BalanceX.Handlers
 
             var buffer = new byte[1024];
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-            return Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            string backendResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            Console.WriteLine($"Backend response: {backendResponse}");
+
+            return backendResponse;
         }
     }
 }
