@@ -1,11 +1,13 @@
-﻿using System.Net.Sockets;
+﻿using BalanceX.LoadBalancer;
+using System.Net.Sockets;
 using System.Text;
-
 
 namespace BalanceX.Handlers
 {
-    public class RequestHandler
+    public static class RequestHandler
     {
+        private static readonly RoundRobinBalancer _balancer = new();
+
         public static async Task HandleRequest(TcpClient client)
         {
             using var clientStream = client.GetStream();
@@ -16,9 +18,11 @@ namespace BalanceX.Handlers
             Console.WriteLine("Hello from Listener. \n");
             Console.WriteLine($"Received request from {client.Client.RemoteEndPoint}:\n{request}");
 
-            Console.WriteLine("Forwarding to backend server... \n");
+            // Use Round Robin to select the backend server
+            int backendPort = _balancer.GetNextServer();
+            Console.WriteLine($"Forwarding request to backend server on port {backendPort}... \n");
 
-            var backendResponse = await ForwardRequestToBackend(8081);
+            var backendResponse = await ForwardRequestToBackend(backendPort);
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(backendResponse);
             await clientStream.WriteAsync(responseBytes, 0, responseBytes.Length);
@@ -39,7 +43,7 @@ namespace BalanceX.Handlers
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
             string backendResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-            Console.WriteLine($"Backend response: {backendResponse}");
+            Console.WriteLine($"Backend response from port {backendPort}: {backendResponse}");
 
             return backendResponse;
         }
