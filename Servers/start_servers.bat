@@ -1,5 +1,5 @@
 @echo off
-start python -m http.server 8080 --directory server8080
-start python -m http.server 8081 --directory server8081
-start python -m http.server 8082 --directory server8082
+start cmd /k "cd /d server8080 && python server.py --port 8080"
+start cmd /k "cd /d server8081 && python server.py --port 8081"
+start cmd /k "cd /d server8082 && python server.py --port 8082"
 echo All servers started!
