@@ -9,7 +9,7 @@ def index():
 
 @app.route("/health")
 def health():
-    return "OK", 200  # Health check endpoint
+    return "Not OK", 503  # Health check endpoint
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
