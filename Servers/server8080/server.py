@@ -1,5 +1,6 @@
 from flask import Flask
 import argparse
+from waitress import serve  
 
 app = Flask(__name__)
 
@@ -9,11 +10,11 @@ def index():
 
 @app.route("/health")
 def health():
-    return "OK", 200  # Health check endpoint
+    return "OK", 200  
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, required=True, help="Port number")
     args = parser.parse_args()
 
-    app.run(host="0.0.0.0", port=args.port)
+    serve(app, host="0.0.0.0", port=args.port)

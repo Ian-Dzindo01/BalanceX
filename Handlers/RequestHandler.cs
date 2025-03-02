@@ -7,6 +7,7 @@ namespace BalanceX.Handlers
     public static class RequestHandler
     {
         private static readonly RoundRobinBalancer _balancer = new();
+        private static readonly HttpClient _httpClient = new();
 
         public static async Task HandleRequest(TcpClient client)
         {
@@ -15,12 +16,12 @@ namespace BalanceX.Handlers
             int bytesRead = await clientStream.ReadAsync(buffer, 0, buffer.Length);
             string request = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-            Console.WriteLine("Hello from Listener. \n");
+            Console.WriteLine("Hello from Listener.\n");
             Console.WriteLine($"Received request from {client.Client.RemoteEndPoint}:\n{request}");
 
             // Use Round Robin to select the backend server
             int backendPort = _balancer.GetNextServer();
-            Console.WriteLine($"Forwarding request to backend server on port {backendPort}... \n");
+            Console.WriteLine($"Forwarding request to backend server on port {backendPort}...\n");
 
             var backendResponse = await ForwardRequestToBackend(backendPort);
 
@@ -32,20 +33,24 @@ namespace BalanceX.Handlers
 
         public static async Task<string> ForwardRequestToBackend(int backendPort)
         {
-            using var backendClient = new TcpClient("127.0.0.1", backendPort);
-            using var stream = backendClient.GetStream();
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"http://localhost:{backendPort}/");
+                request.Headers.Connection.Clear();
+                request.Headers.Connection.Add("keep-alive");
 
-            string request = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
-            byte[] requestBytes = Encoding.UTF8.GetBytes(request);
-            await stream.WriteAsync(requestBytes, 0, requestBytes.Length);
+                HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-            var buffer = new byte[1024];
-            int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-            string backendResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Forwarded request to {backendPort}, Response: {response.StatusCode} - {responseBody}");
 
-            Console.WriteLine($"Backend response from port {backendPort}: {backendResponse}");
-
-            return backendResponse;
+                return responseBody;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error forwarding request to {backendPort}: {ex.Message}");
+                return "Backend Error";
+            }
         }
     }
 }
