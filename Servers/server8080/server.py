@@ -1,7 +1,7 @@
 from flask import Flask, request
 import argparse
 import logging
-from waitress import serve  
+from waitress import serve
 
 app = Flask(__name__)
 
@@ -27,3 +27,4 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, required=True, help="Port number")
     args = parser.parse_args()
 
+    serve(app, host='0.0.0.0', port=args.port)

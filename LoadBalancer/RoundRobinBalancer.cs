@@ -6,7 +6,7 @@
         private readonly Dictionary<int, bool> _serverHealth = new();
         private int _currentIndex = -1;
         private readonly object _lock = new();
-        private readonly HttpClient _httpClient = new();
+        private readonly HttpClient _httpClient;
 
         public RoundRobinBalancer()
         {
@@ -14,6 +14,14 @@
             {
                 _serverHealth[server] = true;
             }
+
+            _httpClient = new HttpClient(new HttpClientHandler
+            {
+                MaxConnectionsPerServer = 10,
+            })
+            {
+                Timeout = TimeSpan.FromSeconds(5)
+            };
 
             Task.Run(() => StartHealthCheck());
         }
@@ -29,7 +37,6 @@
                     throw new Exception("No healthy servers available");
                 }
 
-                // Iterate and go back to beggining when at end
                 _currentIndex = (_currentIndex + 1) % healthyServers.Count;
                 return healthyServers[_currentIndex];
             }
@@ -52,10 +59,14 @@
 
         private async Task<bool> CheckHealth(int port)
         {
-            using var httpClient = new HttpClient();
             try
             {
-                HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:{port}/health");
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"http://localhost:{port}/health");
+
+                request.Headers.Connection.Clear();
+                request.Headers.Connection.Add("keep-alive");
+
+                HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
                 Console.WriteLine($"Health check response from port {port}: {response.StatusCode}");
                 string content = await response.Content.ReadAsStringAsync();

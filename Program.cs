@@ -25,7 +25,7 @@ static void StartBatchScript()
         {
             FileName = "cmd.exe",
             Arguments = "/c start_servers.bat", // /c runs the batch script and exits
-            WorkingDirectory = @"C:\Users\iandz\Desktop\Projects\BalanceX\Servers\", // Set the correct path to your batch file
+            WorkingDirectory = @"C:\Users\iandz\Desktop\Projects\BalanceX\Servers\",
             UseShellExecute = true
         };
 
