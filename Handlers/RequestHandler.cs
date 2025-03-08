@@ -39,6 +39,8 @@ namespace BalanceX.Handlers
                 request.Headers.Connection.Clear();
                 request.Headers.Connection.Add("keep-alive");
 
+                request.Headers.Add("X-API-KEY", "secret_api_key");
+
                 HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                 string responseBody = await response.Content.ReadAsStringAsync();
 

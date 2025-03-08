@@ -1,4 +1,4 @@
-﻿using BalanceX.Servers; // Assuming Listener class is in this namespace
+﻿using BalanceX.Servers;
 using System.Diagnostics;
 
 
@@ -24,7 +24,7 @@ static void StartBatchScript()
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
             FileName = "cmd.exe",
-            Arguments = "/c start_servers.bat", // /c runs the batch script and exits
+            Arguments = "/c start_servers.bat",
             WorkingDirectory = @"C:\Users\iandz\Desktop\Projects\BalanceX\Servers\",
             UseShellExecute = true
         };
