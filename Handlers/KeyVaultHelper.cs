@@ -3,9 +3,9 @@ using Azure.Security.KeyVault.Secrets;
 
 namespace BalanceX.Handlers
 {
-    public class KeyVaultHelper
+    public static class KeyVaultHelper
     {
-        private static string keyVaultUrl = "https://balancex.vault.azure.net/";
+        private static readonly string keyVaultUrl = "https://balancex.vault.azure.net/";
 
         public static string GetApiKey()
         {

@@ -1,4 +1,4 @@
-﻿using BalanceX.LoadBalancer;
+﻿using BalanceX.Services;
 using System.Net.Sockets;
 using System.Text;
 
@@ -39,20 +39,31 @@ namespace BalanceX.Handlers
                 request.Headers.Connection.Clear();
                 request.Headers.Connection.Add("keep-alive");
 
-                request.Headers.Add("X-API-KEY", "secret_api_key");
+                request.Headers.Add("X-API-KEY", KeyVaultHelper.GetApiKey());
 
-                HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-                string responseBody = await response.Content.ReadAsStringAsync();
+                using HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                response.EnsureSuccessStatusCode();
+
+                await using var responseStream = await response.Content.ReadAsStreamAsync();
+                using var reader = new StreamReader(responseStream);
+                string responseBody = await reader.ReadToEndAsync();
 
                 Console.WriteLine($"Forwarded request to {backendPort}, Response: {response.StatusCode} - {responseBody}");
 
                 return responseBody;
             }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"HTTP error forwarding request to {backendPort}: {ex.Message}");
+                return "Backend Error";
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error forwarding request to {backendPort}: {ex.Message}");
+                Console.WriteLine($"Unexpected error forwarding request to {backendPort}: {ex.Message}");
                 return "Backend Error";
             }
         }
+
     }
 }

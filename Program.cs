@@ -1,7 +1,6 @@
 ﻿using BalanceX.Servers;
 using System.Diagnostics;
 
-
 try
 {
     StartBatchScript();
